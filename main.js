@@ -1,53 +1,89 @@
-function loadEvents() {
-    document.querySelector('form').addEventListener('submit', submit);
-    document.getElementById('clearAll').addEventListener('click', clearAll);
-    let taskLabels = document.getElementsByClassName('taskCheckBox');
-    for (let i = 0; i < taskLabels.length; i++) {
-        taskLabels[i].addEventListener('change', markTask);
+document.addEventListener('DOMContentLoaded', ()=>{
+    getElement('addTodo').addEventListener('click', addTodo);
+    getElement('clearAll').addEventListener('click', clearAll);
+    getElement('markAll').addEventListener('click', markAll);
+    getElement('unmarkAll').addEventListener('click', unmarkAll);
+})
+
+function markAll() {
+    const todoElements = document.getElementsByClassName('todo');
+    for (let i = 0; i < todoElements.length; i++) {
+        const todosElm = todoElements[i];
+        if (!todosElm.classList.contains('done')) {
+            todosElm.classList.add('done');
+        }        
     }
-    document.querySelector('span').addEventListener('click', removeTask);
-    document.getElementById('markAll').addEventListener('click', markAll);
 }
 
-loadEvents();
-
-function submit(e) {
-    e.preventDefault();
-    let input = document.querySelector('input');
-    if (input.value !== '') {
-        addTask(input.value);
-    } 
-    input.value = '';
-    loadEvents();
-}
-
-function addTask(task) {
-    let ul = document.querySelector('ul');
-    let li = document.createElement('li');
-    li.innerHTML = `<span>&#10060</span> <label class="taskCheckBox"> <input type="checkbox">${task}</label>`;
-    ul.appendChild(li);
+function unmarkAll() {
+    const todoElements = document.getElementsByClassName('todo');
+    for (let i = 0; i < todoElements.length; i++) {
+        const todosElm = todoElements[i];
+        if (todosElm.classList.contains('done')) {
+            todosElm.classList.remove('done');
+        }        
+    }
 }
 
 function clearAll() {
-    let ul = document.querySelector('ul');
-    ul.innerHTML = '';
+    getElement('todoList').innerHTML = '';
 }
 
-function markTask(e) {
-    let task = e.target.parentNode;
-    if (e.target.checked) {
-        task.style.textDecoration = "Line-through";
-        task.style.color = "#ff0000";
-    } else {
-        task.style.textDecoration = "none";
-        task.style.color = "#000";
-    }
+function addTodo() {    
+    const todoText = getTodoText();  
+    const todoElm = createTodo(todoText);
+    createRemoveButton(todoElm);
+    addToggleDone(todoElm);
 }
-function removeTask(e) {
-    let li = document.querySelector('li');
-    li.parentNode.removeChild(li);
-    loadEvents();
+
+function addToggleDone(todoElm) {
+    todoElm.addEventListener('click', ()=>{
+        if (todoElm.classList.contains('done')) {
+            todoElm.classList.remove('done');
+        } else {
+            todoElm.classList.add('done');
+        }
+    })
 }
-function markAll(e) {
+
+function createRemoveButton(todoElm) {
+    const removeButton = createElement('button');
+    todoElm.append(removeButton);
+    removeButton.innerHTML = '&#10060';
+    removeButton.classList.add('btn')
+    removeButton.addEventListener('click', (event)=>{
+        event.stopPropagation();
+        todoElm.remove();
+    })
+}
+
+function getElement(elmId) {
+    return document.getElementById(elmId);
+}
+
+function createElement(tagName) {
+    return document.createElement(tagName);
+}
+
+function append(element, containerId) {
+    const container = getElement(containerId);
+    container.append(element);
+}
+
+function createTodo(todoText) {
+    const todoElm = createElement('div'); 
+    todoElm.innerHTML = todoText; 
+    todoElm.className = 'todo'; 
+    if (todoText.value !== '') {
+        append(todoElm, 'todoList');
+        return todoElm;
+    }    
     
+}
+
+function getTodoText() {
+    const todoTextElm = getElement('todoText');
+    const text = todoTextElm.value;
+    todoTextElm.value = ''; 
+    return text;
 }

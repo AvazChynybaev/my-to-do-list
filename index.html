@@ -9,27 +9,12 @@
 </head>
 <body>
     <div class="container">
-        <div class="task">
-            <h1>TO-DO List</h1>
-            <form class="todo-form" id="todo-form" method="post">
-                <input type="text" placeholder="New To Do" name="task">
-                <input type="text" placeholder="Who Should Do" name="task">
-                <button type="submit" class="add-task">ADD</button>
-            </form>
-        </div>
-        <div class="taskBoard">
-            <ul>
-                <li>
-                    <span>&#10060</span>
-                    <label class="taskCheckBox">
-                        <input type="checkbox" id="checkbox">
-                        VUE
-                    </label>
-                </li>
-            </ul>
-            <button id="clearAll">Clear All</button>
-            <button id="markAll">Mark All</button>
-        </div>
+        <input id="todoText" type="text">
+        <button id="addTodo">Add</button>
+        <div id="todoList"></div>
+        <button id="clearAll">Clear All</button>
+        <button id="markAll">Mark All</button>
+        <button id="unmarkAll">Unmark All</button>
     </div>
     <script src="main.js"></script>
 </body>
