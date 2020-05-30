@@ -1,62 +1,3 @@
-document.addEventListener('DOMContentLoaded', ()=>{
-    getElement('addTodo').addEventListener('click', addTodo);
-    getElement('clearAll').addEventListener('click', clearAll);
-    getElement('markAll').addEventListener('click', markAll);
-    getElement('unmarkAll').addEventListener('click', unmarkAll);
-})
-
-function markAll() {
-    const todoElements = document.getElementsByClassName('todo');
-    for (let i = 0; i < todoElements.length; i++) {
-        const todosElm = todoElements[i];
-        if (!todosElm.classList.contains('done')) {
-            todosElm.classList.add('done');
-        }        
-    }
-}
-
-function unmarkAll() {
-    const todoElements = document.getElementsByClassName('todo');
-    for (let i = 0; i < todoElements.length; i++) {
-        const todosElm = todoElements[i];
-        if (todosElm.classList.contains('done')) {
-            todosElm.classList.remove('done');
-        }        
-    }
-}
-
-function clearAll() {
-    getElement('todoList').innerHTML = '';
-}
-
-function addTodo() {    
-    const todoText = getTodoText();  
-    const todoElm = createTodo(todoText);
-    createRemoveButton(todoElm);
-    addToggleDone(todoElm);
-}
-
-function addToggleDone(todoElm) {
-    todoElm.addEventListener('click', ()=>{
-        if (todoElm.classList.contains('done')) {
-            todoElm.classList.remove('done');
-        } else {
-            todoElm.classList.add('done');
-        }
-    })
-}
-
-function createRemoveButton(todoElm) {
-    const removeButton = createElement('button');
-    todoElm.append(removeButton);
-    removeButton.innerHTML = '&#10060';
-    removeButton.classList.add('btn')
-    removeButton.addEventListener('click', (event)=>{
-        event.stopPropagation();
-        todoElm.remove();
-    })
-}
-
 function getElement(elmId) {
     return document.getElementById(elmId);
 }
@@ -65,25 +6,93 @@ function createElement(tagName) {
     return document.createElement(tagName);
 }
 
-function append(element, containerId) {
-    const container = getElement(containerId);
-    container.append(element);
+// Model start
+class BaseRepository {
+    constructor(entityClass) {
+        this.list = [];
+        this.entityClass = entityClass;    
+    }
+    find(id) {
+        return id ? this.list.filter(it => it.id === id) : this.list;
+    }
+    findOne(id) {
+        return this.find(it => it.id === id);
+    }
+    create(obj) {
+        this.list.push(new this.entityClass(obj));
+    }
+    update(id, obj) {
+        const entity = this.findOne(id);
+        if (entity) {
+            entity.patch(obj);
+        }
+    }
+    delete(id) {
+        this.list = this.list.filter(it => it.id !== id);
+    }
 }
 
-function createTodo(todoText) {
-    const todoElm = createElement('div'); 
-    todoElm.innerHTML = todoText; 
-    todoElm.className = 'todo'; 
-    if (todoText.value !== '') {
-        append(todoElm, 'todoList');
-        return todoElm;
-    }    
-    
+class ToDoRepository extends BaseRepository {
+
 }
 
-function getTodoText() {
-    const todoTextElm = getElement('todoText');
-    const text = todoTextElm.value;
-    todoTextElm.value = ''; 
-    return text;
+class BaseEntity {
+    constructor() {
+        this.id = Math.random();
+    }
 }
+class ToDoEntity extends BaseEntity {
+    constructor(obj = {}) {
+        super();
+        this.title = obj.title || '';
+        this.done = obj.done || false;
+    }
+    patch(obj = {}) {
+        this.title = obj.title || this.title;
+        this.done = obj.done || this.done;
+    }
+}
+
+const todoRepo = new ToDoRepository(ToDoEntity);
+todoRepo.create({title: 'first todo', done: true});
+todoRepo.create({title: 'second todo', done: false});
+// Model end
+
+// View start
+class ToDoListRenderer {
+    constructor(repo, containerId) {
+        this.repo = repo;
+        this.containerId = containerId;
+    }
+    render() {
+        const todoList = this.repo.find();
+        this.container.innerHTML = '';
+        todoList
+            .map(todo => new ToDoRenderer(todo))
+            .map(toDoRender => toDoRender.render())
+            .forEach(elm => this.container.append(it));
+    }
+    get container() {
+        return getElement(this.containerId);
+    }
+}
+
+class ToDoRenderer {
+    constructor(todo) {
+        this.todo = todo;
+    }
+    render() {
+        const elm = createElement('div');
+        elm.innerHTML = this.todo.title;
+        if (this.todo.done) {
+            elm.classList.add('done');
+        }
+    }
+}
+
+const renderer = new ToDoListRenderer(todoRepo, todoList);
+// View end
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    renderer.render();
+})
